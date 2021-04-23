@@ -1,106 +1,157 @@
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 
 FILENAME = "Stars.csv"
 TRAIN_TO_TEST_RATIO = 3/4
 
-CLASSIFICATION = {
-    0: "Red Dwarf",
-    1: "Brown Dwarf",
-    2: "White Dwarf",
-    3: "Main Sequence",
-    4: "Super Giants",
-    5: "Hyper Giants",
-    None: "?"
-}
+    
+CLASSIFICATION = [
+    "Red Dwarf",
+    "Brown Dwarf",
+    "White Dwarf",
+    "Main Sequence",
+    "Super Giants",
+    "Hyper Giants",
+]
 
-COL = {
-    "Temperature": 0,
-    "Luminosity": 1,
-    "Radius": 2,
-    "Magnitude": 3,
-    "Color": 4,
-    "SMASS": 5,
-    "Classification": 6        
-}
-
-class Dataset(object):
+class Dataset(object):    
     def __init__(self):
         pass
-    
-    def drop(self, drop_columns):
-        if drop_columns:
-            self.original = self.original.drop(columns=drop_columns)
-
-class DatasetNumpy(Dataset):
-    def __init__(self, drop_columns=None):
-        self.original = pd.read_csv(FILENAME)
-        self.drop(drop_columns)
-        self.original = self.original.to_numpy()
-        self.train, self.test, self.train_classes, self.test_classes = train_test_split(
-            np.array([i[:COL["Classification"]] for i in self.original]), 
-            np.array([i[COL["Classification"]] for i in self.original]), 
-            train_size=TRAIN_TO_TEST_RATIO, 
-            stratify=np.array([i[COL["Classification"]] for i in self.original]))
-        _, _, self.train_colors, self.test_colors = train_test_split(
-            np.array([i[:COL["Color"]] for i in self.original]), 
-            np.array([i[COL["Color"]] for i in self.original]), 
-            train_size=TRAIN_TO_TEST_RATIO, 
-            stratify=np.array([i[COL["Color"]] for i in self.original]))
-
         
+    def label_to_index(self, label):
+        return self.LABELS.index(label)
+    
+    def column_to_index(self, column):
+        return self.COLUMNS.index(column)
+        
+    def label_to_column(self, label):
+        return self.COLUMNS[self.label_to_index(label)]
+        
+    def print_star(self, star, star_classification=None):
+        print("Star - Temp: {0}, Lum: {1}, Rad: {2}, Magnitude: {3}, Color: {4}, SMASS: {5}, Class: {6}".format(
+            star[0], 
+            self.truncate(star[1], 5), 
+            self.truncate(star[2], 5), 
+            self.truncate(star[3], 2), 
+            star[4], 
+            star[5], 
+            CLASSIFICATION[star_classification]))
+    
+    def truncate(self, n, decimals=0):
+        multiplier = 10 ** decimals
+        return int(n * multiplier) / multiplier
 
-class DatasetPanda(Dataset):    
-    def __init__(self, drop_columns=None):
+
+class DatasetPanda(Dataset):
+    def __init__(self, target="Classification"):
         self.original = pd.read_csv(FILENAME)
+        self.setup_lists()
         self.normalize_color()
-        self.classes = self.original["Type"]
-        self.drop("Type")
-        self.drop(drop_columns)
+        self.define_target(target)
+        self.set_target_labels()
+        self.flatten_data()
+        self.set_target()
+        self.split()
+        self.scale()
+    
+    # Lists end up Class variables instead of Instance variables if not done here
+    def setup_lists(self):
+        # Names as they should appear in the plots
+        self.LABELS = [
+            "Temperature",
+            "Luminosity",
+            "Radius",
+            "Magnitude",
+            "Color",
+            "SMASS",
+            "Classification",
+        ]        
+        # Names as they are in the data
+        self.COLUMNS = [
+            "Temperature",
+            "L",
+            "R",
+            "A_M",
+            "Color",
+            "Spectral_Class",
+            "Type",
+        ]        
+        
+    # Color is really unorganized, this is a bit unfair but helps
+    def normalize_color(self):
+        col = "Color"        
+        self.original[col] = self.original[col].str.lower()
+        self.original[col] = self.original[col].str.replace(" ", "-")
+        self.original[col] = self.original[col].str.replace("whitish", "white")
+        self.original[col] = self.original[col].str.replace("ish", "")
+        self.original[col] = self.original[col].str.replace("orange-red", "orange")
+        self.original[col] = self.original[col].str.replace("pale-yellow-orange", "orange")
+        self.original[col] = self.original[col].str.replace("white-yellow", "yellow")
+    
+    # Sets the index and column name
+    def define_target(self, target_label):
+        self.target_index = self.label_to_index(target_label)
+        self.target_column = self.label_to_column(target_label)
+    
+    # Gets the names before text is transformed into numbers
+    def set_target_labels(self):
+        if self.target_column == "Type":
+            self.target_classes = CLASSIFICATION
+            return
+        target_values = self.original[self.target_column]
+        self.target_classes = list(set(target_values))
+    
+    # Changes text into numbers
+    def flatten_data(self):
+        label_encoder = LabelEncoder()
+        text_columns = ["Color", "Spectral_Class"]
+        flattened_text = self.original[text_columns].values.flatten()
+        label_encoder.fit(flattened_text)
+        flattened_columns = label_encoder.fit_transform
+        self.original[text_columns] = self.original[text_columns].apply(flattened_columns)
+    
+    # Gets the target values and drops it from the data
+    def set_target(self):
+        self.target = self.original[self.target_column]
+        self.drop_column(self.target_column)
+    
+    # Removes from the data, then the lists
+    def drop_labels(self, labels=None):
+        if labels:
+            for label in labels:
+                column = self.label_to_column(label)
+                self.original = self.original.drop(columns=column)
+            self.drop_labels_from_lists(labels)
+    
+    # Same as above, but "private"
+    def drop_column(self, column):
+        self.original = self.original.drop(columns=column)
+        self.LABELS.pop(self.column_to_index(column))
+        self.COLUMNS.pop(self.column_to_index(column))
+    
+    # Removes from the list of columns and labels
+    def drop_labels_from_lists(self, labels):
+        for label in labels:
+            self.COLUMNS.pop(self.label_to_index(label))
+            self.LABELS.pop(self.label_to_index(label))
+        
+    # Splits into test and training in a balanced manner
+    def split(self):
         self.train, self.test, self.train_classes, self.test_classes = train_test_split(
             self.original, 
-            self.classes, 
+            self.target, 
             train_size=TRAIN_TO_TEST_RATIO, 
-            stratify=self.classes)
-        self.scale()
-
+            stratify=self.target)        
+        
+    # "Standardizes features by removing the mean and scaling to unit variance"
+    # Helps on simpler comparations
     def scale(self):
         scaler = StandardScaler()
         scaler.fit(self.train)
         self.scaled_train = scaler.transform(self.train)
         self.scaled_test = scaler.transform(self.test)
         
-    def normalize_color(self):
-        self.original["Color"] = self.original["Color"].str.lower()
-        self.original["Color"] = self.original["Color"].str.replace(" ", "-")
-        self.original["Color"] = self.original["Color"].str.replace("whitish", "white")
-        self.original["Color"] = self.original["Color"].str.replace("ish", "")
-        self.original["Color"] = self.original["Color"].str.replace("orange-red", "orange")
-        self.original["Color"] = self.original["Color"].str.replace("pale-yellow-orange", "orange")
-        self.original["Color"] = self.original["Color"].str.replace("white-yellow", "yellow")
         
-class DatasetPandaColor(DatasetPanda):
-    def __init__(self, drop_columns=None):
-        self.original = pd.read_csv(FILENAME)
-        self.normalize_color()
-        colors = self.original["Color"]
-        self.drop(drop_columns)
-        self.train, self.test, self.train_classes, self.test_classes = train_test_split(
-            self.original,
-            colors,
-            train_size=TRAIN_TO_TEST_RATIO,
-            stratify=colors)
-        self.scale()
-        
-        
-def print_star(star, star_classification=None):
-    print("Star - Temp: {0}, Lum: {1}, Rad: {2}, Magnitude: {3}, Color: {4}, SMASS: {5}, Class: {6}".format(
-        star[0], truncate(star[1], 5), truncate(star[2], 5), truncate(star[3], 2), star[4], star[5], CLASSIFICATION[star_classification]))
-
-def truncate(n, decimals=0):
-    multiplier = 10 ** decimals
-    return int(n * multiplier) / multiplier
 

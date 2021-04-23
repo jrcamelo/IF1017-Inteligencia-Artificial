@@ -1,11 +1,8 @@
 import graphviz
 from IPython.display import SVG,display
 from sklearn import metrics
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
-
-from StarsDataset import DatasetPanda, DatasetPandaColor, COL, CLASSIFICATION
+from StarsDataset import DatasetPanda
 
 def make_decision_tree(data, features, classes):
     decision_tree = DecisionTreeClassifier()
@@ -44,21 +41,23 @@ def plot_tree(decision_tree, features, classes):
     display(SVG(graph.pipe(format='svg')))
     
 def run_for_type():
-    data = DatasetPanda(drop_columns=["Color", "Spectral_Class"])
-    # print(data.original)
-    features = [*COL.keys()][:4]
-    classes = [*CLASSIFICATION.values()][:6]
+    data = DatasetPanda()
+    features = data.LABELS
+    classes = data.target_classes
     tree = make_decision_tree(data, features, classes)
     plot_tree(tree, features, classes)
     
 def run_for_color():
-    data = DatasetPandaColor(drop_columns=["Color", "Spectral_Class"])
-    # print(data.original)
-    features = [*COL.keys()][:5]
-    classes = None
-    make_decision_tree(data, features, classes)
+    data = DatasetPanda(target="Color")
+    print(data.original)
+    features = data.LABELS
+    classes = data.target_classes
     tree = make_decision_tree(data, features, classes)
     plot_tree(tree, features, classes)
 
 run_for_type()
-    
+run_for_color()
+
+# NEED TO EXPERIMENT
+# NEED TO PRUNE TREE
+# NEED TO MAKE PATH IT TOOK

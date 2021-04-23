@@ -6,13 +6,10 @@ from sklearn.metrics import classification_report, confusion_matrix
 from StarsDataset import DatasetPanda
 
 MAX_K = 50
-TRIES_FOR_EACH_K = 500
-
-def new_dataset():
-    return DatasetPanda(drop_columns=["Color", "Spectral_Class"])
+TRIES_FOR_EACH_K = 100
 
 def run_knn():
-    data = new_dataset()
+    data = DatasetPanda()
 
     classifier = KNeighborsClassifier(n_neighbors=5)
     classifier.fit(data.scaled_train, data.train_classes)
@@ -32,7 +29,7 @@ def plot_knn_average_error():
     for i in range(1, MAX_K):
         error = []
         for j in range(0, TRIES_FOR_EACH_K):
-            error.append(get_knn_error(i, new_dataset()))
+            error.append(get_knn_error(i, DatasetPanda()))
         total_error.append(sum(error) / len(error))
         
     plt.figure(figsize=(24, 12))
@@ -50,4 +47,6 @@ def plot_knn_average_error():
 if __name__ == '__main__':
     run_knn()
     plot_knn_average_error()
-    
+
+# NEED TO EXPERIMENT
+# NEED TO REMOVE FEATURES
