@@ -51,11 +51,11 @@ def execute(tree_amount=500, visualize=False, drop_labels=None):
         plt.legend()
         plt.show()
         
-        viz = dtreeviz(random_forest.estimators_[0], data.data, data.target,
-                target_name="target",
-                feature_names=data.LABELS,
-                class_names=CLASSIFICATION)
-        viz.save("decision_tree.svg")
+        # viz = dtreeviz(random_forest.estimators_[0], data.data, data.target,
+        #         target_name="target",
+        #         feature_names=data.LABELS,
+        #         class_names=CLASSIFICATION)
+        # viz.save("decision_tree.svg")
     return metrics.accuracy_score(data.test_classes, test_prediction)
 
 TREE_AMOUNT = 50
@@ -65,7 +65,7 @@ DROPS = [
 
 execute(visualize=True)
 
-executions = 10
+executions = 100
 for i in range(len(DROPS)):
     scores = 0
     for _ in range(executions):
@@ -75,7 +75,3 @@ for i in range(len(DROPS)):
     print("Removing " + str(DROPS[i]))
     print(score)
 
-
-# NEED TO EXPERIMENT
-# NEED TO CREATE VISUALIZATIONS
-# NEED TO DROP FEATURES

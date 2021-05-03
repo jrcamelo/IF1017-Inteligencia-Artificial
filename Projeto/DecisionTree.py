@@ -56,8 +56,6 @@ def run_for_color():
     plot_tree(tree, features, classes)
 
 run_for_type()
-run_for_color()
+# run_for_color()
 
-# NEED TO EXPERIMENT
-# NEED TO PRUNE TREE
 # NEED TO MAKE PATH IT TOOK
