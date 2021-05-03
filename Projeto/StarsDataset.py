@@ -181,15 +181,3 @@ class DatasetPanda(Dataset):
         if target != "Classification":
             self.data["Type"] = pd.Categorical(self.data["Type"])
         
-
-# Ended up not being used
-class DatasetH2O(DatasetPanda):
-    def __init__(self):
-        super().__init__("")
-        h2o.init(ip="127.0.0.1", port="8080")
-        self.data_hex = h2o.H2OFrame(self.data)
-        # self.data_hex["Type"] = h2o.H2OFrame(self.target).asFactor()
-        self.data_train_hex, self.data_test_hex = self.data_hex.split_frame(
-            ratios=[TRAIN_TO_TEST_RATIO], 
-            seed=999)
-        print(self.data_train_hex["Type"].as_data_frame().value_counts())

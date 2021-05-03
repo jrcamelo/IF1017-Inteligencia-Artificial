@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
-from StarsDataset import DatasetPanda, CLASSIFICATION
-
 from dtreeviz.trees import dtreeviz
+from StarsDataset import DatasetPanda, CLASSIFICATION
 
 def execute(tree_amount=500, visualize=False, drop_labels=None):
     data = DatasetPanda()
@@ -24,7 +23,7 @@ def execute(tree_amount=500, visualize=False, drop_labels=None):
         min_samples_split=2,
         min_weight_fraction_leaf=0.0, 
         n_estimators=tree_amount, 
-        n_jobs=1,
+        n_jobs=2,
         oob_score=False, 
         random_state=None, 
         verbose=0,
@@ -51,14 +50,14 @@ def execute(tree_amount=500, visualize=False, drop_labels=None):
         plt.legend()
         plt.show()
         
-        # viz = dtreeviz(random_forest.estimators_[0], data.data, data.target,
-        #         target_name="target",
-        #         feature_names=data.LABELS,
-        #         class_names=CLASSIFICATION)
-        # viz.save("decision_tree.svg")
+        viz = dtreeviz(random_forest.estimators_[-1], data.data, data.target,
+                target_name="target",
+                feature_names=data.LABELS,
+                class_names=CLASSIFICATION)
+        viz.save("decision_tree.svg")
     return metrics.accuracy_score(data.test_classes, test_prediction)
 
-TREE_AMOUNT = 50
+TREE_AMOUNT = 500
 DROPS = [
     [],
 ]

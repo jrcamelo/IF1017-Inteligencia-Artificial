@@ -16,12 +16,12 @@ def make_decision_tree(data, features, classes):
     print(metrics.classification_report(data.train_classes, train_prediction))
     
     print("\nResults for Test")
-    print(metrics.classification_report(data.test_classes, test_prediction))
     
     print("\nFeature importance")
     for feature, importance in zip(features, decision_tree.feature_importances_):
         print("{}:{}".format(feature, importance))    
-    return decision_tree
+        
+    return decision_tree, metrics.accuracy_score(data.test_classes, test_prediction)
     
 def plot_tree(decision_tree, features, classes):
     dot_data = export_graphviz( 
@@ -40,22 +40,32 @@ def plot_tree(decision_tree, features, classes):
     graph = graphviz.Source(dot_data)  
     display(SVG(graph.pipe(format='svg')))
     
-def run_for_type():
-    data = DatasetPanda()
+def run_dt(target=None, plot=False):
+    if target:
+        data = DatasetPanda(target)
+    else:
+        data = DatasetPanda()
     features = data.LABELS
     classes = data.target_classes
-    tree = make_decision_tree(data, features, classes)
-    plot_tree(tree, features, classes)
+    tree, acc = make_decision_tree(data, features, classes)
+    if plot:
+        plot_tree(tree, features, classes)
+    return acc
+
+def test_type():
+    n = 500
+    total_accuracy = 0
+    for i in range(0, n):
+        total_accuracy += run_dt()
+    print("Total accuracy for Type = ", total_accuracy / n)
     
-def run_for_color():
-    data = DatasetPanda(target="Color")
-    print(data.data)
-    features = data.LABELS
-    classes = data.target_classes
-    tree = make_decision_tree(data, features, classes)
-    plot_tree(tree, features, classes)
+def test_color():
+    n = 500
+    total_accuracy = 0
+    for i in range(0, n):
+        total_accuracy += run_dt("Color")
+    print("Total accuracy for Color = ", total_accuracy / n)
+    
 
-run_for_type()
-# run_for_color()
-
-# NEED TO MAKE PATH IT TOOK
+test_type()
+# test_color()

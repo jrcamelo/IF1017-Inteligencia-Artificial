@@ -6,12 +6,12 @@ from sklearn.metrics import classification_report, confusion_matrix
 from StarsDataset import DatasetPanda
 
 MAX_K = 40
-TRIES_FOR_EACH_K = 500
+TRIES_FOR_EACH_K = 100
 
 def run_knn():
-    data = DatasetPanda()
+    data = DatasetPanda("Color")
 
-    classifier = KNeighborsClassifier(n_neighbors=5)
+    classifier = KNeighborsClassifier(n_neighbors=1)
     classifier.fit(data.scaled_train, data.train_classes)
     test_pred = classifier.predict(data.scaled_test)
     
@@ -46,4 +46,5 @@ def plot_knn_average_error():
 
 if __name__ == '__main__':
     run_knn()
+    print(get_knn_error(1, DatasetPanda()))
     plot_knn_average_error()
