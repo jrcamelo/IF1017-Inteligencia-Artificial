@@ -49,7 +49,7 @@ def run_for_type():
     
 def run_for_color():
     data = DatasetPanda(target="Color")
-    print(data.original)
+    print(data.data)
     features = data.LABELS
     classes = data.target_classes
     tree = make_decision_tree(data, features, classes)

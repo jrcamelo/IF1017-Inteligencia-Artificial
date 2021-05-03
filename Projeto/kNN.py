@@ -5,8 +5,8 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 from StarsDataset import DatasetPanda
 
-MAX_K = 50
-TRIES_FOR_EACH_K = 100
+MAX_K = 40
+TRIES_FOR_EACH_K = 500
 
 def run_knn():
     data = DatasetPanda()
@@ -47,6 +47,3 @@ def plot_knn_average_error():
 if __name__ == '__main__':
     run_knn()
     plot_knn_average_error()
-
-# NEED TO EXPERIMENT
-# NEED TO REMOVE FEATURES
